@@ -1,13 +1,8 @@
-//COPY OF WORLD CLASS WITH ANOTHER THREE.JS LINE IMPLEMENTATION
-//
-//
-
 // import { Experience } from "../Experience";
 // import { Lights } from "./Lights";
 // import {
+//   Box3,
 //   BufferGeometry,
-//   Line as TLine,
-//   LineBasicMaterial,
 //   Points,
 //   PointsMaterial,
 //   Raycaster,
@@ -18,6 +13,11 @@
 // import { PCDLoader } from "three/addons/loaders/PCDLoader.js";
 // import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader.js";
 // import { EventEmitter } from "../Utils/EventEmitter.ts";
+//
+// import { Line2 } from "three/addons/lines/Line2.js";
+// import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+// import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+// import { Utils } from "../Utils";
 //
 // export type WorldEmitter = {
 //   clear: void;
@@ -32,14 +32,13 @@
 //   raycaster = new Raycaster();
 //   points?: Points;
 //   coords = new Vector2();
-//   tLine = new TLine(
-//     new BufferGeometry(),
-//     new LineBasicMaterial({
+//   tLine = new Line2(
+//     new LineGeometry(),
+//     new LineMaterial({
 //       color: "#D73333",
-//       linewidth: 15, // in world units with size attenuation, pixels otherwise
-//
-//       //resolution:  // to be set by renderer, eventually
+//       linewidth: 0.006,
 //       alphaToCoverage: true,
+//       transparent: true,
 //     }),
 //   );
 //   tLoader = new TextureLoader();
@@ -48,8 +47,8 @@
 //     new PointsMaterial({
 //       size: 10,
 //       transparent: true,
-//       depthTest: false,
 //       sizeAttenuation: false,
+//       depthTest: false,
 //     }),
 //   );
 //   time: null | number = null;
@@ -82,15 +81,20 @@
 //         const point = this.raycaster.intersectObject(this.points, false)?.[0]
 //           ?.point;
 //         if (!point) return;
-//         const g = new BufferGeometry().setFromPoints([this.mCoords[0], point]);
+//         const g = new LineGeometry();
+//         g.setPositions([
+//           this.mCoords[0].x,
+//           this.mCoords[0].y,
+//           this.mCoords[0].z,
+//           point.x,
+//           point.y,
+//           point.z,
+//         ]);
 //         this.tLine.geometry.dispose();
 //         this.tLine.geometry = g;
-//         this.mid = new Vector3().lerpVectors(this.mCoords[0], point, 0.5);
+//         this.mid = Utils.getMiddle(this.mCoords[0], this.mCoords[1]);
 //         this.set2DCoords(this.mid);
-//         this.emit(
-//           "distance",
-//           new Vector3().copy(this.mCoords[0]).distanceTo(point) * 100,
-//         );
+//         this.emit("distance", Utils.getDistance(this.mCoords[0], point));
 //       }
 //     });
 //     this.experience.wrapper?.addEventListener("mousedown", () => {
@@ -118,16 +122,21 @@
 //       this.measureSpheres.geometry = g;
 //       if (this.mCoords.length >= 2) {
 //         this.tLine.geometry.dispose();
+//         const g = new LineGeometry();
+//         g.setPositions([
+//           this.mCoords[0].x,
+//           this.mCoords[0].y,
+//           this.mCoords[0].z,
+//           this.mCoords[1].x,
+//           this.mCoords[1].y,
+//           this.mCoords[1].z,
+//         ]);
 //         this.tLine.geometry = g;
 //         this.emit(
 //           "distance",
-//           new Vector3().copy(this.mCoords[0]).distanceTo(this.mCoords[1]) * 100,
+//           Utils.getDistance(this.mCoords[0], this.mCoords[1]),
 //         );
-//         this.mid = new Vector3().lerpVectors(
-//           this.mCoords[0],
-//           this.mCoords[1],
-//           0.5,
-//         );
+//         this.mid = Utils.getMiddle(this.mCoords[0], this.mCoords[1]);
 //         this.set2DCoords(this.mid);
 //       }
 //     });
@@ -139,30 +148,30 @@
 //       this.mCoords = [];
 //       this.measureSpheres.geometry.dispose();
 //       this.tLine.geometry.dispose();
-//       this.measureSpheres.geometry = this.tLine.geometry = new BufferGeometry();
+//       this.measureSpheres.geometry = new BufferGeometry();
+//       this.tLine.geometry = new LineGeometry();
 //     });
 //   }
 //
 //   async setPoints() {
-//     this.points = await this.pcdLoader.loadAsync("/portfolio/kek/high.pcd");
-//     // this.points = new Points(
-//     //   await this.plyLoader.loadAsync("/portfolio/kek/result.ply"),
-//     //   new PointsMaterial({
-//     //     size: 0.02,
-//     //   }),
-//     // );
+//     // this.points = await this.pcdLoader.loadAsync("/portfolio/kek/high.pcd");
+//     this.points = new Points(
+//       await this.plyLoader.loadAsync("/portfolio/kek/points.ply"),
+//       new PointsMaterial({
+//         size: 0.02,
+//         depthWrite: false,
+//       }),
+//     );
+//     const box = new Box3().setFromObject(this.points);
+//     this.points.scale.setScalar(5 / (box.max.y - box.min.y));
 //     this.points.geometry.center();
+//     this.points.rotation.x = -Math.PI / 2;
 //     this.experience.scene.add(this.points);
 //   }
 //
 //   set2DCoords(v3: Vector3 | null) {
-//     const wrap = this.experience.wrapper;
-//     if (!wrap || !v3) return;
-//     const newV = v3.clone();
-//     newV.project(this.experience.camera.instance);
-//     const x = (newV.x + 1) / 2;
-//     const y = -(newV.y - 1) / 2;
-//     const v2 = new Vector2(x, y);
+//     if (!v3) return;
+//     const v2 = Utils.get2DProjection(v3, this.experience.camera.instance);
 //     this.emit("mid", v2);
 //   }
 // }
