@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Custom
+.vite
+public/canada.ply
+public/test.ply

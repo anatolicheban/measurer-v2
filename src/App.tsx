@@ -37,7 +37,7 @@ function App() {
         >
           Clear
         </button>
-        <div className={"distance"}>Distance: 100cm</div>
+        {/*<div className={"distance"}>Distance: 100cm</div>*/}
       </div>
       <div ref={viewerRef} className={"viewer"}>
         {toolTips.map(({ pos, distance }, i) => {
@@ -54,7 +54,7 @@ function App() {
                   top: `${pos.y * 100}%`,
                 }}
               >
-                {distance.toFixed(2)}
+                {distance.toFixed(2)}m
               </div>
             )
           );

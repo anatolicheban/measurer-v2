@@ -1,6 +1,7 @@
 import { Experience } from "../Experience";
 import { Lights } from "./Lights";
 import {
+  AxesHelper,
   Box3,
   BufferGeometry,
   Points,
@@ -20,6 +21,8 @@ import { LineGeometry } from "three/addons/lines/LineGeometry.js";
 import { Utils } from "../Utils";
 import { Tooltip3D } from "../../App.tsx";
 
+const MODEL_SIZE = 5;
+
 export type WorldEmitter = {
   clear: void;
   tooltips: Tooltip3D[];
@@ -36,8 +39,8 @@ const line = new Line2(
 );
 
 export class World extends EventEmitter<WorldEmitter> {
-  experience: Experience;
-  lights: Lights;
+  experience = new Experience();
+  lights = new Lights();
   pcdLoader = new PCDLoader();
   plyLoader = new PLYLoader();
   raycaster = new Raycaster();
@@ -66,8 +69,7 @@ export class World extends EventEmitter<WorldEmitter> {
   constructor() {
     super();
     this.raycaster.params.Points.threshold = 0.03;
-    this.experience = new Experience();
-    this.lights = new Lights();
+    this.experience.scene.add(new AxesHelper(2.5));
     this.experience.scene.add(this.measureSpheres);
     this.setPoints();
     this.tLoader.load("/portfolio/kek/texture2.png", (t) => {
@@ -121,6 +123,13 @@ export class World extends EventEmitter<WorldEmitter> {
       const point = this.raycaster.intersectObject(this.points, false)?.[0]
         ?.point;
       if (!point) return;
+
+      //Real coords!
+      if (this.ratio) {
+        const realVec = new Vector3().copy(point).divideScalar(this.ratio);
+        console.log(realVec);
+      }
+
       this.allCoords.push(point);
       this.measureSpheres.geometry = new BufferGeometry().setFromPoints(
         this.allCoords,
@@ -153,7 +162,6 @@ export class World extends EventEmitter<WorldEmitter> {
         ]);
         this.mCoords = [];
       }
-      console.log(this.linesCoords);
     });
 
     this.experience.camera.controls.addEventListener("change", () => {
@@ -177,17 +185,18 @@ export class World extends EventEmitter<WorldEmitter> {
   async setPoints() {
     // this.points = await this.pcdLoader.loadAsync("/portfolio/kek/high.pcd");
     this.points = new Points(
-      await this.plyLoader.loadAsync("/portfolio/kek/points.ply"),
+      await this.plyLoader.loadAsync("/portfolio/kek/test.ply"),
       new PointsMaterial({
-        size: 0.02,
+        size: 0.005,
         depthWrite: false,
       }),
     );
-    const box = new Box3().setFromObject(this.points);
-    this.ratio = 5 / (box.max.y - box.min.y);
-    this.points.scale.setScalar(this.ratio);
-    this.points.geometry.center();
     this.points.rotation.x = -Math.PI / 2;
+    this.points.geometry.center();
+    const box = new Box3().setFromObject(this.points);
+    this.ratio = MODEL_SIZE / (box.max.z - box.min.z);
+    this.points.scale.setScalar(this.ratio);
+
     this.experience.scene.add(this.points);
   }
 
@@ -200,7 +209,8 @@ export class World extends EventEmitter<WorldEmitter> {
           Utils.getMiddle(el[0], el[1]),
           this.experience.camera.instance,
         ),
-        distance: Utils.getDistance(el[0], el[1]) * (this.ratio as number),
+        distance:
+          Utils.getDistance(el[0], el[1], false) / (this.ratio as number),
       };
     });
     this.emit("tooltips", tooltips);
