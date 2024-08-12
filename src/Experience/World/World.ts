@@ -72,7 +72,7 @@ export class World extends EventEmitter<WorldEmitter> {
     this.experience.scene.add(new AxesHelper(2.5));
     this.experience.scene.add(this.measureSpheres);
     this.setPoints();
-    this.tLoader.load("/portfolio/kek/texture2.png", (t) => {
+    this.tLoader.load("/texture2.png", (t) => {
       this.measureSpheres.material.map = t;
     });
     this.experience.wrapper?.addEventListener("mousemove", (e) => {
@@ -185,7 +185,7 @@ export class World extends EventEmitter<WorldEmitter> {
   async setPoints() {
     // this.points = await this.pcdLoader.loadAsync("/portfolio/kek/high.pcd");
     this.points = new Points(
-      await this.plyLoader.loadAsync("/portfolio/kek/test.ply"),
+      await this.plyLoader.loadAsync("/test.ply"),
       new PointsMaterial({
         size: 0.005,
         depthWrite: false,
