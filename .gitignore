@@ -26,4 +26,4 @@ dist-ssr
 # Custom
 .vite
 public/canada.ply
-public/test.ply
+# public/test.ply
