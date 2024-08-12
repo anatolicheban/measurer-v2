@@ -72,7 +72,7 @@ export class World extends EventEmitter<WorldEmitter> {
     this.experience.scene.add(new AxesHelper(2.5));
     this.experience.scene.add(this.measureSpheres);
     this.setPoints();
-    this.tLoader.load("/texture2.png", (t) => {
+    this.tLoader.load("/portfolio/measurer/texture2.png", (t) => {
       this.measureSpheres.material.map = t;
     });
     this.experience.wrapper?.addEventListener("mousemove", (e) => {
